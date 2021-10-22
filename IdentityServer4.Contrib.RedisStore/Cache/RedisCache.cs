@@ -1,4 +1,5 @@
-﻿using IdentityServer4.Services;
+﻿using IdentityServer4.Contrib.RedisStore.Extensions;
+using IdentityServer4.Services;
 using IdentityServer4.Stores.Serialization;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -35,7 +36,7 @@ namespace IdentityServer4.Contrib.RedisStore.Cache
         public async Task<T> GetAsync(string key)
         {
             var cacheKey = GetKey(key);
-            var item = await this.database.StringGetAsync(cacheKey);
+            var item = await this.database.PollyStringGetAsync(cacheKey);
             if (item.HasValue)
             {
                 logger.LogDebug("retrieved {type} with Key: {key} from Redis Cache successfully.", typeof(T).FullName, key);
@@ -51,7 +52,7 @@ namespace IdentityServer4.Contrib.RedisStore.Cache
         public async Task SetAsync(string key, T item, TimeSpan expiration)
         {
             var cacheKey = GetKey(key);
-            await this.database.StringSetAsync(cacheKey, Serialize(item), expiration);
+            await this.database.PollyStringSetAsync(cacheKey, Serialize(item), expiration);
             logger.LogDebug("persisted {type} with Key: {key} in Redis Cache successfully.", typeof(T).FullName, key);
         }
 

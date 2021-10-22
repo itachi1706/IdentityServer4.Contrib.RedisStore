@@ -23,6 +23,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
+    <PackageReference Include="Polly.Caching.Memory" Version="3.0.2" />
   </ItemGroup>
 
 
@@ -36,6 +37,7 @@
 
   <ItemGroup>
     <None Remove="IdentityServer4.Contrib.RedisStore.nuspec" />
+    <None Remove="Polly.Caching.Memory" />
   </ItemGroup>
 
   <ItemGroup>
@@ -45,7 +47,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="icon.jpg" Pack="true" PackagePath="\"/>
+    <None Include="icon.jpg" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>

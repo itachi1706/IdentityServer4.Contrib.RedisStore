@@ -1,4 +1,5 @@
-﻿using IdentityServer4.Extensions;
+﻿using IdentityServer4.Contrib.RedisStore.Extensions;
+using IdentityServer4.Extensions;
 using IdentityServer4.Models;
 using IdentityServer4.Stores;
 using Microsoft.AspNetCore.Authentication;
@@ -61,9 +62,9 @@ namespace IdentityServer4.Contrib.RedisStore.Stores
                     var setKeyforClient = GetSetKey(grant.SubjectId, grant.ClientId);
                     var setKetforSession = GetSetKeyWithSession(grant.SubjectId, grant.ClientId, grant.SessionId);
 
-                    var ttlOfClientSet = this.database.KeyTimeToLiveAsync(setKeyforClient);
-                    var ttlOfSubjectSet = this.database.KeyTimeToLiveAsync(setKeyforSubject);
-                    var ttlofSessionSet = this.database.KeyTimeToLiveAsync(setKetforSession);
+                    var ttlOfClientSet = this.database.PollyKeyTimeToLiveAsync(setKeyforClient);
+                    var ttlOfSubjectSet = this.database.PollyKeyTimeToLiveAsync(setKeyforSubject);
+                    var ttlofSessionSet = this.database.PollyKeyTimeToLiveAsync(setKetforSession);
 
                     await Task.WhenAll(ttlOfSubjectSet, ttlOfClientSet, ttlofSessionSet);
 
@@ -81,11 +82,11 @@ namespace IdentityServer4.Contrib.RedisStore.Stores
                     if (!grant.SessionId.IsNullOrEmpty() && (ttlofSessionSet.Result ?? TimeSpan.Zero) <= expiresIn)
                         transaction.KeyExpireAsync(setKetforSession, expiresIn);
                     transaction.KeyExpireAsync(setKeyforType, expiresIn);
-                    await transaction.ExecuteAsync();
+                    await transaction.PollyExecuteAsync();
                 }
                 else
                 {
-                    await this.database.StringSetAsync(grantKey, data, expiresIn);
+                    await this.database.PollyStringSetAsync(grantKey, data, expiresIn);
                 }
                 logger.LogDebug("grant for subject {subjectId}, clientId {clientId}, grantType {grantType} and sessionId {session} persisted successfully", grant.SubjectId, grant.ClientId, grant.Type, grant.SessionId);
             }
@@ -100,7 +101,7 @@ namespace IdentityServer4.Contrib.RedisStore.Stores
         {
             try
             {
-                var data = await this.database.StringGetAsync(GetKey(key));
+                var data = await this.database.PollyStringGetAsync(GetKey(key));
                 logger.LogDebug("{key} found in database: {hasValue}", key, data.HasValue);
                 return data.HasValue ? ConvertFromJson(data) : null;
             }
@@ -125,7 +126,7 @@ namespace IdentityServer4.Contrib.RedisStore.Stores
                     transaction.SetRemoveAsync(GetSetKey(filter.SubjectId, filter.ClientId), keys);
                     transaction.SetRemoveAsync(GetSetKeyWithType(filter.SubjectId, filter.ClientId, filter.Type), keys);
                     transaction.SetRemoveAsync(GetSetKeyWithSession(filter.SubjectId, filter.ClientId, filter.SessionId), keys);
-                    await transaction.ExecuteAsync();
+                    await transaction.PollyExecuteAsync();
                 }
                 logger.LogDebug("{grantsCount} persisted grants found for {subjectId}", grants.Count(), filter.SubjectId);
                 return grants.Where(_ => _.HasValue).Select(_ => ConvertFromJson(_)).Where(_ => IsMatch(_, filter));
@@ -139,10 +140,10 @@ namespace IdentityServer4.Contrib.RedisStore.Stores
 
         protected virtual async Task<(IEnumerable<RedisValue> grants, IEnumerable<RedisValue> keysToDelete)> GetGrants(string setKey)
         {
-            var grantsKeys = await this.database.SetMembersAsync(setKey);
+            var grantsKeys = await this.database.PollySetMembersAsync(setKey);
             if (!grantsKeys.Any())
                 return (Enumerable.Empty<RedisValue>(), Enumerable.Empty<RedisValue>());
-            var grants = await this.database.StringGetAsync(grantsKeys.Select(_ => (RedisKey)_.ToString()).ToArray());
+            var grants = await this.database.PollyStringGetAsync(grantsKeys.Select(_ => (RedisKey)_.ToString()).ToArray());
             var keysToDelete = grantsKeys.Zip(grants, (key, value) => new KeyValuePair<RedisValue, RedisValue>(key, value))
                                          .Where(_ => !_.Value.HasValue).Select(_ => _.Key);
             return (grants, keysToDelete);
@@ -166,7 +167,7 @@ namespace IdentityServer4.Contrib.RedisStore.Stores
                 transaction.SetRemoveAsync(GetSetKey(grant.SubjectId, grant.ClientId), grantKey);
                 transaction.SetRemoveAsync(GetSetKeyWithType(grant.SubjectId, grant.ClientId, grant.Type), grantKey);
                 transaction.SetRemoveAsync(GetSetKeyWithSession(grant.SubjectId, grant.ClientId, grant.SessionId), grantKey);
-                await transaction.ExecuteAsync();
+                await transaction.PollyExecuteAsync();
             }
             catch (Exception ex)
             {
@@ -182,7 +183,7 @@ namespace IdentityServer4.Contrib.RedisStore.Stores
             {
                 filter.Validate();
                 var setKey = GetSetKey(filter);
-                var grants = await this.database.SetMembersAsync(setKey);
+                var grants = await this.database.PollySetMembersAsync(setKey);
                 logger.LogDebug("removing {grantKeysCount} persisted grants from database for subject {subjectId}, clientId {clientId}, grantType {type} and session {session}", grants.Count(), filter.SubjectId, filter.ClientId, filter.Type, filter.SessionId);
                 if (!grants.Any()) return;
                 var transaction = this.database.CreateTransaction();
@@ -191,7 +192,7 @@ namespace IdentityServer4.Contrib.RedisStore.Stores
                 transaction.SetRemoveAsync(GetSetKey(filter.SubjectId, filter.ClientId), grants);
                 transaction.SetRemoveAsync(GetSetKeyWithType(filter.SubjectId, filter.ClientId, filter.Type), grants);
                 transaction.SetRemoveAsync(GetSetKeyWithSession(filter.SubjectId, filter.ClientId, filter.SessionId), grants);
-                await transaction.ExecuteAsync();
+                await transaction.PollyExecuteAsync();
             }
             catch (Exception ex)
             {

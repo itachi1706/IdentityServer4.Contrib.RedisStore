@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using StackExchange.Redis;
 
 namespace IdentityServer4.Contrib.RedisStore
