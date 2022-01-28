@@ -24,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\IdentityServer4.Contrib.RedisStore\IdentityServer4.Contrib.RedisStore.csproj" />
+    <ProjectReference Include="..\ZNX.IDS4.Contrib.Redis\ZNX.IDS4.Contrib.Redis.csproj" />
   </ItemGroup>
 
   <ItemGroup>
