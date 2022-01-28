@@ -56,6 +56,14 @@ namespace IdentityServer4.Contrib.RedisStore.Cache
             logger.LogDebug("persisted {type} with Key: {key} in Redis Cache successfully.", typeof(T).FullName, key);
         }
 
+        public async Task RemoveAsync(string key)
+        {
+            var cacheKey = GetKey(key);
+            await this.database.KeyDeleteAsync(cacheKey);
+            logger.LogDebug("removed {type} with Key: {key} from Redis Cache successfully", typeof(T).FullName, key);
+
+        }
+
         #region Json
         private JsonSerializerSettings SerializerSettings
         {

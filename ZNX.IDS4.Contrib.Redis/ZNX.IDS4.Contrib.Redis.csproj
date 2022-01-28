@@ -8,7 +8,7 @@
     <Company>Zionext</Company>
     <AssemblyVersion>4.0.0.0</AssemblyVersion>
     <PackageReleaseNotes>Supports Identity Server 4 v4.</PackageReleaseNotes>
-    <Version>4.0.0</Version>
+    <Version>4.0.1</Version>
     <PackageProjectUrl>https://github.com/itachi1706/IdentityServer4.Contrib.RedisStore</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Copyright>Zionext</Copyright>
