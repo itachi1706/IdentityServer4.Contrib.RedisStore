@@ -39,6 +39,11 @@ namespace IdentityServer4.Contrib.RedisStore.Extensions
             return await Policy.ExecuteAsync(() => transaction.ExecuteAsync(flags));
         }
 
+        public static async Task<bool> PollyKeyDeleteAsync(this IDatabase cache, RedisKey key, CommandFlags flags = CommandFlags.None)
+        {
+            return await Policy.ExecuteAsync(() => cache.KeyDeleteAsync(key, flags));
+        }
+
         public static AsyncPolicyWrap Policy { get; } =
             Polly.Policy.BulkheadAsync(70, 210)
             .WrapAsync(Polly.Policy.Handle<RedisTimeoutException>()

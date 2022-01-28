@@ -59,7 +59,7 @@ namespace IdentityServer4.Contrib.RedisStore.Cache
         public async Task RemoveAsync(string key)
         {
             var cacheKey = GetKey(key);
-            await this.database.KeyDeleteAsync(cacheKey);
+            await this.database.PollyKeyDeleteAsync(cacheKey);
             logger.LogDebug("removed {type} with Key: {key} from Redis Cache successfully", typeof(T).FullName, key);
 
         }
