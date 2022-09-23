@@ -4,7 +4,7 @@ using Polly;
 using Polly.Wrap;
 using StackExchange.Redis;
 
-namespace IdentityServer4.Contrib.RedisStore.Extensions
+namespace Duende.IdentityServer.Contrib.RedisStore.Extensions
 {
     public static class PollyCachingExtension
     {

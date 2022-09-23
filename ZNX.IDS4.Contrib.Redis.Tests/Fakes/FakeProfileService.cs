@@ -1,5 +1,5 @@
-﻿using IdentityServer4.Models;
-using IdentityServer4.Services;
+﻿using Duende.IdentityServer.Models;
+using Duende.IdentityServer.Services;
 using System;
 using System.Collections.Generic;
 using System.Security.Claims;
@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Linq;
 
-namespace IdentityServer4.Contrib.RedisStore.Tests.Cache
+namespace Duende.IdentityServer.Contrib.RedisStore.Tests.Cache
 {
     public class FakeProfileService : IProfileService
     {

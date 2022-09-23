@@ -1,8 +1,8 @@
-﻿using IdentityServer4.Contrib.RedisStore;
-using IdentityServer4.Contrib.RedisStore.Cache;
-using IdentityServer4.Contrib.RedisStore.Stores;
-using IdentityServer4.Services;
-using IdentityServer4.Stores;
+﻿using Duende.IdentityServer.Contrib.RedisStore;
+using Duende.IdentityServer.Contrib.RedisStore.Cache;
+using Duende.IdentityServer.Contrib.RedisStore.Stores;
+using Duende.IdentityServer.Services;
+using Duende.IdentityServer.Stores;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using System;
 

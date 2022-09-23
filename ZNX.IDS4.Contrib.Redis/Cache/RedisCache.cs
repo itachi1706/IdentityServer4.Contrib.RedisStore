@@ -1,13 +1,14 @@
-﻿using IdentityServer4.Contrib.RedisStore.Extensions;
-using IdentityServer4.Services;
-using IdentityServer4.Stores.Serialization;
+﻿using Duende.IdentityServer.Contrib.RedisStore.Extensions;
+using Duende.IdentityServer.Services;
+using Duende.IdentityServer.Stores.Serialization;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using StackExchange.Redis;
 using System;
+using System.Text.Json;
 using System.Threading.Tasks;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
-namespace IdentityServer4.Contrib.RedisStore.Cache
+namespace Duende.IdentityServer.Contrib.RedisStore.Cache
 {
     /// <summary>
     /// Redis based implementation for ICache<typeparamref name="T"/>
@@ -42,11 +43,21 @@ namespace IdentityServer4.Contrib.RedisStore.Cache
                 logger.LogDebug("retrieved {type} with Key: {key} from Redis Cache successfully.", typeof(T).FullName, key);
                 return Deserialize(item);
             }
-            else
+
+            logger.LogDebug("missed {type} with Key: {key} from Redis Cache.", typeof(T).FullName, key);
+            return default(T);
+        }
+
+        public async Task<T> GetOrAddAsync(string key, TimeSpan duration, Func<Task<T>> get)
+        {
+            var result = await GetAsync(key);
+            if (result == null)
             {
-                logger.LogDebug("missed {type} with Key: {key} from Redis Cache.", typeof(T).FullName, key);
-                return default(T);
+                result = await get();
+                await SetAsync(key, result, duration);
             }
+
+            return result;
         }
 
         public async Task SetAsync(string key, T item, TimeSpan expiration)
@@ -56,20 +67,26 @@ namespace IdentityServer4.Contrib.RedisStore.Cache
             logger.LogDebug("persisted {type} with Key: {key} in Redis Cache successfully.", typeof(T).FullName, key);
         }
 
-        public async Task RemoveAsync(string key)
+        Task ICache<T>.RemoveAsync(string key)
+        {
+            return RemoveAsync(key);
+        }
+
+        public async Task<bool> RemoveAsync(string key)
         {
             var cacheKey = GetKey(key);
-            await this.database.PollyKeyDeleteAsync(cacheKey);
+            var result = await this.database.PollyKeyDeleteAsync(cacheKey);
             logger.LogDebug("removed {type} with Key: {key} from Redis Cache successfully", typeof(T).FullName, key);
+            return result;
 
         }
 
         #region Json
-        private JsonSerializerSettings SerializerSettings
+        private JsonSerializerOptions ConverterSettings
         {
             get
             {
-                var settings = new JsonSerializerSettings();
+                var settings = new JsonSerializerOptions();
                 settings.Converters.Add(new ClaimConverter());
                 return settings;
             }
@@ -77,12 +94,12 @@ namespace IdentityServer4.Contrib.RedisStore.Cache
 
         private T Deserialize(string json)
         {
-            return JsonConvert.DeserializeObject<T>(json, this.SerializerSettings);
+            return JsonSerializer.Deserialize<T>(json, this.ConverterSettings);
         }
 
         private string Serialize(T item)
         {
-            return JsonConvert.SerializeObject(item, this.SerializerSettings);
+            return JsonSerializer.Serialize(item, this.ConverterSettings);
         }
         #endregion
     }

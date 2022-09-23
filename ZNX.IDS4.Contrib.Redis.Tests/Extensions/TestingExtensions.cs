@@ -1,6 +1,6 @@
-﻿using IdentityServer4.Contrib.RedisStore.Tests;
-using IdentityServer4.Contrib.RedisStore.Tests.Cache;
-using IdentityServer4.Services;
+﻿using Duende.IdentityServer.Contrib.RedisStore.Tests;
+using Duende.IdentityServer.Contrib.RedisStore.Tests.Cache;
+using Duende.IdentityServer.Services;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 

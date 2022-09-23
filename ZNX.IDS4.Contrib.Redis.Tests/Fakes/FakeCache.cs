@@ -1,11 +1,11 @@
-﻿using IdentityServer4.Services;
+﻿using Duende.IdentityServer.Services;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace IdentityServer4.Contrib.RedisStore.Tests.Cache
+namespace Duende.IdentityServer.Contrib.RedisStore.Tests.Cache
 {
     public class FakeCache<T> : ICache<T> where T : class
     {
@@ -31,9 +31,27 @@ namespace IdentityServer4.Contrib.RedisStore.Tests.Cache
             return Task.FromResult((T)result);
         }
 
+        public Task<T> GetOrAddAsync(string key, TimeSpan duration, Func<Task<T>> get)
+        {
+            var keyResult = GetAsync(key);
+            if (keyResult != null)
+                return keyResult;
+
+            var va = get.Invoke();
+            var t = SetAsync(key, va.Result, duration);
+                
+            return Task.FromResult(t as T);
+        }
+
         public Task SetAsync(string key, T item, TimeSpan expiration)
         {
             cache.Set(key, item, expiration);
+            return Task.CompletedTask;
+        }
+
+        public Task RemoveAsync(string key)
+        {
+            cache.Remove(key);
             return Task.CompletedTask;
         }
     }

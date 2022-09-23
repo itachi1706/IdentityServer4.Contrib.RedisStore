@@ -1,8 +1,8 @@
 ﻿using FluentAssertions;
 using IdentityModel.Client;
-using IdentityServer4.Contrib.RedisStore.Tests.Cache;
-using IdentityServer4.Models;
-using IdentityServer4.Services;
+using Duende.IdentityServer.Contrib.RedisStore.Tests.Cache;
+using Duende.IdentityServer.Models;
+using Duende.IdentityServer.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
@@ -14,7 +14,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace IdentityServer4.Contrib.RedisStore.Tests
+namespace Duende.IdentityServer.Contrib.RedisStore.Tests
 {
     public class CachingProfileServiceTests
     {

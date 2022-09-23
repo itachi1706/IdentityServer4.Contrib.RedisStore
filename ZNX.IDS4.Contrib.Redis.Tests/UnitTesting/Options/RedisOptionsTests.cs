@@ -1,7 +1,7 @@
-﻿using IdentityServer4.Contrib.RedisStore.Tests.Fakes;
+﻿using Duende.IdentityServer.Contrib.RedisStore.Tests.Fakes;
 using Xunit;
 
-namespace IdentityServer4.Contrib.RedisStore.Tests.Options
+namespace Duende.IdentityServer.Contrib.RedisStore.Tests.Options
 {
     public class RedisOptionsTests
     {

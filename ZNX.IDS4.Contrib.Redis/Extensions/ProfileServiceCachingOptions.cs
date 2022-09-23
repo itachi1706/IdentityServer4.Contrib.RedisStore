@@ -1,9 +1,9 @@
 ﻿using System;
-using IdentityServer4.Models;
-using IdentityServer4.Services;
+using Duende.IdentityServer.Models;
+using Duende.IdentityServer.Services;
 using System.Linq;
 
-namespace IdentityServer4.Contrib.RedisStore
+namespace Duende.IdentityServer.Contrib.RedisStore
 {
     ///<summary>
     /// Represents the Profile Service caching options.

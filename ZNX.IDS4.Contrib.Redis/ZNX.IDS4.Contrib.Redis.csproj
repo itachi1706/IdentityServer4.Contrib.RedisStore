@@ -1,14 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <Description>Modified Redis Store for operational data and for Caching of Identity Server 4</Description>
     <Authors>Zionext</Authors>
     <Company>Zionext</Company>
     <AssemblyVersion>4.0.0.0</AssemblyVersion>
     <PackageReleaseNotes>Supports Identity Server 4 v4.</PackageReleaseNotes>
-    <Version>4.0.2</Version>
+    <Version>4.0.3</Version>
     <PackageProjectUrl>https://github.com/itachi1706/IdentityServer4.Contrib.RedisStore</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Copyright>Zionext</Copyright>
@@ -25,11 +25,11 @@
 
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>bin\Debug\netcoreapp3.1\ZNX.IDS4.Contrib.Redis.xml</DocumentationFile>
+    <DocumentationFile>bin\Debug\net6.0\ZNX.IDS4.Contrib.Redis.xml</DocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>bin\Release\netcoreapp3.1\ZNX.IDS4.Contrib.Redis.xml</DocumentationFile>
+    <DocumentationFile>bin\Release\net6.0\ZNX.IDS4.Contrib.Redis.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -38,9 +38,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="IdentityServer4" Version="4.0.0" />
-    <PackageReference Include="IdentityServer4.Storage" Version="4.0.0" />
-    <PackageReference Include="StackExchange.Redis" Version="2.1.*" />
+    <PackageReference Include="Duende.IdentityServer" Version="6.0.0" />
+    <PackageReference Include="Duende.IdentityServer.Storage" Version="6.0.0" />
+    <PackageReference Include="StackExchange.Redis" Version="2.6.*" />
   </ItemGroup>
 
   <ItemGroup>

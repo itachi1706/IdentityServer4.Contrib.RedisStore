@@ -1,5 +1,5 @@
-﻿using IdentityServer4.Models;
-using IdentityServer4.Services;
+﻿using Duende.IdentityServer.Models;
+using Duende.IdentityServer.Services;
 using System;
 using System.Collections.Generic;
 using System.Security.Claims;
@@ -12,7 +12,7 @@ using System.Threading;
 using Microsoft.Extensions.Caching.Memory;
 using Moq;
 
-namespace IdentityServer4.Contrib.RedisStore.Tests.Cache
+namespace Duende.IdentityServer.Contrib.RedisStore.Tests.Cache
 {
     public class CachingProfileServiceTests
     {

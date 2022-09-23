@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace IdentityServer4.Contrib.RedisStore.Tests
+namespace Duende.IdentityServer.Contrib.RedisStore.Tests
 {
     public class FakeLogger<T> : ILogger<T>
     {

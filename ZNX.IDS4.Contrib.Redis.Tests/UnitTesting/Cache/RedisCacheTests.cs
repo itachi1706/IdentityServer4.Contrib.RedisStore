@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using IdentityServer4.Contrib.RedisStore.Cache;
+using Duende.IdentityServer.Contrib.RedisStore.Cache;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 
-namespace IdentityServer4.Contrib.RedisStore.Tests.Cache
+namespace Duende.IdentityServer.Contrib.RedisStore.Tests.Cache
 {
     public class RedisCacheTests
     {
