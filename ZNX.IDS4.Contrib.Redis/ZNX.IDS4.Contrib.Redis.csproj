@@ -3,16 +3,16 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-    <Description>Modified Redis Store for operational data and for Caching of Identity Server 4</Description>
+    <Description>Modified Redis Store for operational data and for Caching of Duende Identity Server</Description>
     <Authors>Zionext</Authors>
     <Company>Zionext</Company>
-    <AssemblyVersion>4.0.0.0</AssemblyVersion>
-    <PackageReleaseNotes>Supports Identity Server 4 v4.</PackageReleaseNotes>
-    <Version>4.0.3</Version>
+    <AssemblyVersion>6.0.0.0</AssemblyVersion>
+    <PackageReleaseNotes>Supports Duende Identity Server v6.</PackageReleaseNotes>
+    <Version>6.0.0</Version>
     <PackageProjectUrl>https://github.com/itachi1706/IdentityServer4.Contrib.RedisStore</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Copyright>Zionext</Copyright>
-    <FileVersion>4.0.0.0</FileVersion>
+    <FileVersion>6.0.0.0</FileVersion>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
