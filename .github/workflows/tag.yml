@@ -1,0 +1,25 @@
+name: Deploy
+
+on:
+  push:
+    tags:
+      - "[0-9]+.[0-9]+.[0-9]+"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GH_PAT }}
+      - uses: actions/setup-dotnet@v3
+        with:
+        dotnet-version: '6.x'
+      - name: Publish to Nuget API and GitHub Packages
+        run: |
+          dotnet pack -c Release -o out
+          cd out
+          dotnet nuget add source --username itachi1706 --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/itachi1706/index.json"
+          dotnet nuget push ZNXHelpers.*.nupkg  --api-key ${{ secrets.GITHUB_TOKEN }} --source "github"
