@@ -33,7 +33,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="ZNX.IDS4.Contrib.Redis.nuspec" />
+    <None Remove="SPCCS.IDS4.Contrib.Redis.nuspec" />
     <None Remove="Polly.Caching.Memory" />
   </ItemGroup>
 
