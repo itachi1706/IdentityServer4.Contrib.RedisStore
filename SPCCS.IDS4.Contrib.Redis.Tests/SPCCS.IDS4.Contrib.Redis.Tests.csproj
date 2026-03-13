@@ -1,9 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
 
     <IsPackable>false</IsPackable>
+
+    <TargetFrameworks>net10.0;net8.0</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
@@ -12,7 +13,7 @@
     <PackageReference Include="Duende.IdentityServer" Version="6.0.*" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="6.0.*" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="6.0.*" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.*" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.3.0" />
     <PackageReference Include="Moq" Version="4.14.*" />
     <PackageReference Include="xunit" Version="2.4.*" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.*">
@@ -24,7 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ZNX.IDS4.Contrib.Redis\ZNX.IDS4.Contrib.Redis.csproj" />
+    <ProjectReference Include="..\SPCCS.IDS4.Contrib.Redis\SPCCS.IDS4.Contrib.Redis.csproj" />
   </ItemGroup>
 
   <ItemGroup>
