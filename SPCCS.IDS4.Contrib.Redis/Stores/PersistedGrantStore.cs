@@ -23,28 +23,28 @@ namespace Duende.IdentityServer.Contrib.RedisStore.Stores
         protected readonly IDatabase database;
 
         protected readonly ILogger<PersistedGrantStore> logger;
-        
-        private readonly TimeProvider _timeProvider;
 
-        public PersistedGrantStore(RedisMultiplexer<RedisOperationalStoreOptions> multiplexer, ILogger<PersistedGrantStore> logger, TimeProvider timeProvider)
+        protected TimeProvider clock;
+
+        public PersistedGrantStore(RedisMultiplexer<RedisOperationalStoreOptions> multiplexer, ILogger<PersistedGrantStore> logger, TimeProvider clock)
         {
             if (multiplexer is null)
                 throw new ArgumentNullException(nameof(multiplexer));
-            options = multiplexer.RedisOptions;
-            database = multiplexer.Database;
+            this.options = multiplexer.RedisOptions;
+            this.database = multiplexer.Database;
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            this._timeProvider = timeProvider;
+            this.clock = clock;
         }
 
-        protected string GetKey(string key) => $"{options.KeyPrefix}{key}";
+        protected string GetKey(string key) => $"{this.options.KeyPrefix}{key}";
 
-        protected string GetSetKey(string subjectId) => $"{options.KeyPrefix}{subjectId}";
+        protected string GetSetKey(string subjectId) => $"{this.options.KeyPrefix}{subjectId}";
 
-        protected string GetSetKey(string subjectId, string clientId) => $"{options.KeyPrefix}{subjectId}:{clientId}";
+        protected string GetSetKey(string subjectId, string clientId) => $"{this.options.KeyPrefix}{subjectId}:{clientId}";
 
-        protected string GetSetKeyWithType(string subjectId, string clientId, string type) => $"{options.KeyPrefix}{subjectId}:{clientId}:{type}";
+        protected string GetSetKeyWithType(string subjectId, string clientId, string type) => $"{this.options.KeyPrefix}{subjectId}:{clientId}:{type}";
 
-        protected string GetSetKeyWithSession(string subjectId, string clientId, string sessionId) => $"{options.KeyPrefix}{subjectId}:{clientId}:{sessionId}";
+        protected string GetSetKeyWithSession(string subjectId, string clientId, string sessionId) => $"{this.options.KeyPrefix}{subjectId}:{clientId}:{sessionId}";
 
         public virtual async Task StoreAsync(PersistedGrant grant)
         {
@@ -54,7 +54,7 @@ namespace Duende.IdentityServer.Contrib.RedisStore.Stores
             {
                 var data = ConvertToJson(grant);
                 var grantKey = GetKey(grant.Key);
-                var expiresIn = grant.Expiration - _timeProvider.GetUtcNow();
+                var expiresIn = grant.Expiration - this.clock.GetUtcNow();
                 if (!string.IsNullOrEmpty(grant.SubjectId))
                 {
                     var setKeyforType = GetSetKeyWithType(grant.SubjectId, grant.ClientId, grant.Type);
@@ -62,40 +62,31 @@ namespace Duende.IdentityServer.Contrib.RedisStore.Stores
                     var setKeyforClient = GetSetKey(grant.SubjectId, grant.ClientId);
                     var setKetforSession = GetSetKeyWithSession(grant.SubjectId, grant.ClientId, grant.SessionId);
 
-                    var ttlOfClientSet = database.PollyKeyTimeToLiveAsync(setKeyforClient);
-                    var ttlOfSubjectSet = database.PollyKeyTimeToLiveAsync(setKeyforSubject);
-                    var ttlofSessionSet = database.PollyKeyTimeToLiveAsync(setKetforSession);
+                    var ttlOfClientSet = this.database.PollyKeyTimeToLiveAsync(setKeyforClient);
+                    var ttlOfSubjectSet = this.database.PollyKeyTimeToLiveAsync(setKeyforSubject);
+                    var ttlofSessionSet = this.database.PollyKeyTimeToLiveAsync(setKetforSession);
 
                     await Task.WhenAll(ttlOfSubjectSet, ttlOfClientSet, ttlofSessionSet);
 
-                    var transaction = database.CreateTransaction();
-                    var transactionOperations = new List<Task>
-                    {
-                        transaction.StringSetAsync(grantKey, data, expiresIn, When.Always),
-                        transaction.SetAddAsync(setKeyforSubject, grantKey),
-                        transaction.SetAddAsync(setKeyforClient, grantKey),
-                        transaction.SetAddAsync(setKeyforType, grantKey)
-                    };
-
+                    var transaction = this.database.CreateTransaction();
+                    transaction.StringSetAsync(grantKey, data, expiresIn, When.Always);
+                    transaction.SetAddAsync(setKeyforSubject, grantKey);
+                    transaction.SetAddAsync(setKeyforClient, grantKey);
+                    transaction.SetAddAsync(setKeyforType, grantKey);
                     if (!grant.SessionId.IsNullOrEmpty())
-                        transactionOperations.Add(transaction.SetAddAsync(setKetforSession, grantKey));
-
+                        transaction.SetAddAsync(setKetforSession, grantKey);
                     if ((ttlOfSubjectSet.Result ?? TimeSpan.Zero) <= expiresIn)
-                        transactionOperations.Add(transaction.KeyExpireAsync(setKeyforSubject, expiresIn));
-
+                        transaction.KeyExpireAsync(setKeyforSubject, expiresIn);
                     if ((ttlOfClientSet.Result ?? TimeSpan.Zero) <= expiresIn)
-                        transactionOperations.Add(transaction.KeyExpireAsync(setKeyforClient, expiresIn));
-
+                        transaction.KeyExpireAsync(setKeyforClient, expiresIn);
                     if (!grant.SessionId.IsNullOrEmpty() && (ttlofSessionSet.Result ?? TimeSpan.Zero) <= expiresIn)
-                        transactionOperations.Add(transaction.KeyExpireAsync(setKetforSession, expiresIn));
-
-                    transactionOperations.Add(transaction.KeyExpireAsync(setKeyforType, expiresIn));
+                        transaction.KeyExpireAsync(setKetforSession, expiresIn);
+                    transaction.KeyExpireAsync(setKeyforType, expiresIn);
                     await transaction.PollyExecuteAsync();
-                    await Task.WhenAll(transactionOperations);
                 }
                 else
                 {
-                    await database.PollyStringSetAsync(grantKey, data, expiresIn);
+                    await this.database.PollyStringSetAsync(grantKey, data, expiresIn);
                 }
                 logger.LogDebug("grant for subject {subjectId}, clientId {clientId}, grantType {grantType} and sessionId {session} persisted successfully", grant.SubjectId, grant.ClientId, grant.Type, grant.SessionId);
             }
@@ -110,7 +101,7 @@ namespace Duende.IdentityServer.Contrib.RedisStore.Stores
         {
             try
             {
-                var data = await database.PollyStringGetAsync(GetKey(key));
+                var data = await this.database.PollyStringGetAsync(GetKey(key));
                 logger.LogDebug("{key} found in database: {hasValue}", key, data.HasValue);
                 return data.HasValue ? ConvertFromJson(data) : null;
             }
@@ -130,7 +121,7 @@ namespace Duende.IdentityServer.Contrib.RedisStore.Stores
                 if (keysToDelete.Any())
                 {
                     var keys = keysToDelete.ToArray();
-                    var transaction = database.CreateTransaction();
+                    var transaction = this.database.CreateTransaction();
                     transaction.SetRemoveAsync(GetSetKey(filter.SubjectId), keys);
                     transaction.SetRemoveAsync(GetSetKey(filter.SubjectId, filter.ClientId), keys);
                     transaction.SetRemoveAsync(GetSetKeyWithType(filter.SubjectId, filter.ClientId, filter.Type), keys);
@@ -149,10 +140,10 @@ namespace Duende.IdentityServer.Contrib.RedisStore.Stores
 
         protected virtual async Task<(IEnumerable<RedisValue> grants, IEnumerable<RedisValue> keysToDelete)> GetGrants(string setKey)
         {
-            var grantsKeys = await database.PollySetMembersAsync(setKey);
+            var grantsKeys = await this.database.PollySetMembersAsync(setKey);
             if (!grantsKeys.Any())
                 return (Enumerable.Empty<RedisValue>(), Enumerable.Empty<RedisValue>());
-            var grants = await database.PollyStringGetAsync(grantsKeys.Select(_ => (RedisKey)_.ToString()).ToArray());
+            var grants = await this.database.PollyStringGetAsync(grantsKeys.Select(_ => (RedisKey)_.ToString()).ToArray());
             var keysToDelete = grantsKeys.Zip(grants, (key, value) => new KeyValuePair<RedisValue, RedisValue>(key, value))
                                          .Where(_ => !_.Value.HasValue).Select(_ => _.Key);
             return (grants, keysToDelete);
@@ -162,7 +153,7 @@ namespace Duende.IdentityServer.Contrib.RedisStore.Stores
         {
             try
             {
-                var grant = await GetAsync(key);
+                var grant = await this.GetAsync(key);
                 if (grant == null)
                 {
                     logger.LogDebug("no {key} persisted grant found in database", key);
@@ -170,7 +161,7 @@ namespace Duende.IdentityServer.Contrib.RedisStore.Stores
                 }
                 var grantKey = GetKey(key);
                 logger.LogDebug("removing {key} persisted grant from database", key);
-                var transaction = database.CreateTransaction();
+                var transaction = this.database.CreateTransaction();
                 transaction.KeyDeleteAsync(grantKey);
                 transaction.SetRemoveAsync(GetSetKey(grant.SubjectId), grantKey);
                 transaction.SetRemoveAsync(GetSetKey(grant.SubjectId, grant.ClientId), grantKey);
@@ -192,20 +183,16 @@ namespace Duende.IdentityServer.Contrib.RedisStore.Stores
             {
                 filter.Validate();
                 var setKey = GetSetKey(filter);
-                var grants = await database.PollySetMembersAsync(setKey);
+                var grants = await this.database.PollySetMembersAsync(setKey);
                 logger.LogDebug("removing {grantKeysCount} persisted grants from database for subject {subjectId}, clientId {clientId}, grantType {type} and session {session}", grants.Count(), filter.SubjectId, filter.ClientId, filter.Type, filter.SessionId);
                 if (!grants.Any()) return;
-                var transaction = database.CreateTransaction();
-                var transactionOperations = new[]
-                {
-                    transaction.KeyDeleteAsync(grants.Select(_ => (RedisKey)_.ToString()).Concat(new RedisKey[] { setKey }).ToArray()),
-                    transaction.SetRemoveAsync(GetSetKey(filter.SubjectId), grants),
-                    transaction.SetRemoveAsync(GetSetKey(filter.SubjectId, filter.ClientId), grants),
-                    transaction.SetRemoveAsync(GetSetKeyWithType(filter.SubjectId, filter.ClientId, filter.Type), grants),
-                    transaction.SetRemoveAsync(GetSetKeyWithSession(filter.SubjectId, filter.ClientId, filter.SessionId), grants)
-                };
+                var transaction = this.database.CreateTransaction();
+                transaction.KeyDeleteAsync(grants.Select(_ => (RedisKey)_.ToString()).Concat(new RedisKey[] { setKey }).ToArray());
+                transaction.SetRemoveAsync(GetSetKey(filter.SubjectId), grants);
+                transaction.SetRemoveAsync(GetSetKey(filter.SubjectId, filter.ClientId), grants);
+                transaction.SetRemoveAsync(GetSetKeyWithType(filter.SubjectId, filter.ClientId, filter.Type), grants);
+                transaction.SetRemoveAsync(GetSetKeyWithSession(filter.SubjectId, filter.ClientId, filter.SessionId), grants);
                 await transaction.PollyExecuteAsync();
-                await Task.WhenAll(transactionOperations);
             }
             catch (Exception ex)
             {
