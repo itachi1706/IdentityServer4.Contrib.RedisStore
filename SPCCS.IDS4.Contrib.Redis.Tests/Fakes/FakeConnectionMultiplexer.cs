@@ -10,6 +10,11 @@ namespace Duende.IdentityServer.Contrib.RedisStore.Tests.Fakes
 {
     internal class FakeConnectionMultiplexer : IConnectionMultiplexer
     {
+        public void AddLibraryNameSuffix(string suffix)
+        {
+            throw new NotImplementedException();
+        }
+
         public string ClientName { get; set; }
 
         public string Configuration { get; set; }
@@ -39,6 +44,11 @@ namespace Duende.IdentityServer.Contrib.RedisStore.Tests.Fakes
         public void Close(bool allowCommandsToComplete = true) { }
         public Task CloseAsync(bool allowCommandsToComplete = true) => Task.CompletedTask;
         public bool Configure(TextWriter log = null) => true;
+        public IServer GetServer(RedisKey key, object asyncState = null, CommandFlags flags = CommandFlags.None)
+        {
+            throw new NotImplementedException();
+        }
+
         public IServer[] GetServers() => new IServer[0];
         public Task<bool> ConfigureAsync(TextWriter log = null) => Task.FromResult(true);
         public void Dispose() { }
