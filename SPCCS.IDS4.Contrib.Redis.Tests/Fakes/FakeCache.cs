@@ -31,16 +31,15 @@ namespace Duende.IdentityServer.Contrib.RedisStore.Tests.Cache
             return Task.FromResult((T)result);
         }
 
-        public Task<T> GetOrAddAsync(string key, TimeSpan duration, Func<Task<T>> get)
+        public async Task<T> GetOrAddAsync(string key, TimeSpan duration, Func<Task<T>> get)
         {
-            var keyResult = GetAsync(key);
-            if (keyResult != null)
-                return keyResult;
+            var cachedValue = await GetAsync(key);
+            if (cachedValue != null)
+                return cachedValue;
 
-            var va = get.Invoke();
-            var t = SetAsync(key, va.Result, duration);
-                
-            return Task.FromResult(t as T);
+            var createdValue = await get.Invoke();
+            await SetAsync(key, createdValue, duration);
+            return createdValue;
         }
 
         public Task SetAsync(string key, T item, TimeSpan expiration)

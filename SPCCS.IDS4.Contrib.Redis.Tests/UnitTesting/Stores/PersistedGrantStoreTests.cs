@@ -6,7 +6,6 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using System;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -92,7 +91,7 @@ namespace Duende.IdentityServer.Contrib.RedisStore.Tests.Stores
                 }
             ).ToList();
 
-            Task.WaitAll(expected.Select(x => _store.StoreAsync(x)).ToArray());
+            await Task.WhenAll(expected.Select(x => _store.StoreAsync(x)));
 
             await _store.RemoveAllAsync(new Duende.IdentityServer.Stores.PersistedGrantFilter { SubjectId = subjectId, ClientId = "client1" });
 
@@ -119,7 +118,7 @@ namespace Duende.IdentityServer.Contrib.RedisStore.Tests.Stores
                 }
             ).ToList();
 
-            Task.WaitAll(expected.Select(x => _store.StoreAsync(x)).ToArray());
+            await Task.WhenAll(expected.Select(x => _store.StoreAsync(x)));
 
             await _store.RemoveAllAsync(new Duende.IdentityServer.Stores.PersistedGrantFilter { SubjectId = subjectId, ClientId = "client1", SessionId = "session1" });
 
@@ -146,7 +145,7 @@ namespace Duende.IdentityServer.Contrib.RedisStore.Tests.Stores
                 }
             ).ToList();
 
-            Task.WaitAll(expected.Select(x => _store.StoreAsync(x)).ToArray());
+            await Task.WhenAll(expected.Select(x => _store.StoreAsync(x)));
 
             await _store.RemoveAllAsync(new Duende.IdentityServer.Stores.PersistedGrantFilter { SubjectId = subjectId, ClientId = "client1", Type = "type2" });
 
@@ -172,7 +171,7 @@ namespace Duende.IdentityServer.Contrib.RedisStore.Tests.Stores
                 }
             ).ToList();
 
-            Task.WaitAll(expected.Select(x => _store.StoreAsync(x)).ToArray());
+            await Task.WhenAll(expected.Select(x => _store.StoreAsync(x)));
 
             await _store.RemoveAllAsync(new Duende.IdentityServer.Stores.PersistedGrantFilter { SubjectId = subjectId, ClientId = "client1", Type = "type1" });
 
@@ -195,7 +194,7 @@ namespace Duende.IdentityServer.Contrib.RedisStore.Tests.Stores
 
             Assert.Equal(expected, actual.Data);
 
-            Thread.Sleep(TimeSpan.FromSeconds(2));
+            await Task.Delay(TimeSpan.FromSeconds(2));
             actual = await _store.GetAsync(key);
 
             Assert.Null(actual);
@@ -217,7 +216,7 @@ namespace Duende.IdentityServer.Contrib.RedisStore.Tests.Stores
                     Type = "type1",
                 }
             ).ToList();
-            Task.WaitAll(expected.Select(x => _store.StoreAsync(x)).ToArray());
+            await Task.WhenAll(expected.Select(x => _store.StoreAsync(x)));
 
             var actual = (await _store.GetAllAsync(new Duende.IdentityServer.Stores.PersistedGrantFilter { SubjectId = subjectId })).ToList();
 
@@ -241,7 +240,7 @@ namespace Duende.IdentityServer.Contrib.RedisStore.Tests.Stores
                     Type = "type1",
                 }
             ).ToList();
-            Task.WaitAll(expected.Select(x => _store.StoreAsync(x)).ToArray());
+            await Task.WhenAll(expected.Select(x => _store.StoreAsync(x)));
 
             var actual = (await _store.GetAllAsync(new Duende.IdentityServer.Stores.PersistedGrantFilter { SubjectId = subjectId, ClientId = "client1" })).ToList();
 
@@ -265,7 +264,7 @@ namespace Duende.IdentityServer.Contrib.RedisStore.Tests.Stores
                     Type = "type1",
                 }
             ).ToList();
-            Task.WaitAll(expected.Select(x => _store.StoreAsync(x)).ToArray());
+            await Task.WhenAll(expected.Select(x => _store.StoreAsync(x)));
 
             var actual = (await _store.GetAllAsync(new Duende.IdentityServer.Stores.PersistedGrantFilter { SubjectId = subjectId, Type = "type1" })).ToList();
 
@@ -289,7 +288,7 @@ namespace Duende.IdentityServer.Contrib.RedisStore.Tests.Stores
                     Type = "type1",
                 }
             ).ToList();
-            Task.WaitAll(expected.Select(x => _store.StoreAsync(x)).ToArray());
+            await Task.WhenAll(expected.Select(x => _store.StoreAsync(x)));
 
             var actual = (await _store.GetAllAsync(new Duende.IdentityServer.Stores.PersistedGrantFilter { SubjectId = subjectId, ClientId = "client1", Type = "type1" })).ToList();
 
@@ -314,7 +313,7 @@ namespace Duende.IdentityServer.Contrib.RedisStore.Tests.Stores
                     Type = "type1",
                 }
             ).ToList();
-            Task.WaitAll(expected.Select(x => _store.StoreAsync(x)).ToArray());
+            await Task.WhenAll(expected.Select(x => _store.StoreAsync(x)));
 
             var actual = (await _store.GetAllAsync(new Duende.IdentityServer.Stores.PersistedGrantFilter { SubjectId = subjectId, ClientId = "client1", SessionId = "session1" })).ToList();
 
@@ -339,7 +338,7 @@ namespace Duende.IdentityServer.Contrib.RedisStore.Tests.Stores
                     Type = "type1",
                 }
             ).ToList();
-            Task.WaitAll(expected.Select(x => _store.StoreAsync(x)).ToArray());
+            await Task.WhenAll(expected.Select(x => _store.StoreAsync(x)));
 
             var actual = (await _store.GetAllAsync(new Duende.IdentityServer.Stores.PersistedGrantFilter { SubjectId = subjectId, ClientId = "client1", SessionId = "session1", Type = "type1" })).ToList();
 
@@ -358,12 +357,14 @@ namespace Duende.IdentityServer.Contrib.RedisStore.Tests.Stores
                 {
                     Key = $"{nameof(GetAllAsync_Does_Not_Retrieve_Expired_Grants)}-{now:O}-{x}",
                     SubjectId = subjectId,
-                    Expiration = now.AddSeconds(-1),
+                    Expiration = now.AddMilliseconds(500),
                     ClientId = "client1",
                     Type = "type1",
                 }
             ).ToList();
-            Task.WaitAll(expected.Select(x => _store.StoreAsync(x)).ToArray());
+            await Task.WhenAll(expected.Select(x => _store.StoreAsync(x)));
+
+            await Task.Delay(TimeSpan.FromSeconds(1));
 
             var actual = (await _store.GetAllAsync(new Duende.IdentityServer.Stores.PersistedGrantFilter { SubjectId = subjectId })).ToList();
 

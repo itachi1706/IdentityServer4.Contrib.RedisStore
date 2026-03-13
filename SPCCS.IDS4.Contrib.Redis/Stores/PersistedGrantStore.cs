@@ -69,20 +69,29 @@ namespace Duende.IdentityServer.Contrib.RedisStore.Stores
                     await Task.WhenAll(ttlOfSubjectSet, ttlOfClientSet, ttlofSessionSet);
 
                     var transaction = database.CreateTransaction();
-                    await transaction.StringSetAsync(grantKey, data, expiresIn, When.Always);
-                    await transaction.SetAddAsync(setKeyforSubject, grantKey);
-                    await transaction.SetAddAsync(setKeyforClient, grantKey);
-                    await transaction.SetAddAsync(setKeyforType, grantKey);
+                    var transactionOperations = new List<Task>
+                    {
+                        transaction.StringSetAsync(grantKey, data, expiresIn, When.Always),
+                        transaction.SetAddAsync(setKeyforSubject, grantKey),
+                        transaction.SetAddAsync(setKeyforClient, grantKey),
+                        transaction.SetAddAsync(setKeyforType, grantKey)
+                    };
+
                     if (!grant.SessionId.IsNullOrEmpty())
-                        await transaction.SetAddAsync(setKetforSession, grantKey);
+                        transactionOperations.Add(transaction.SetAddAsync(setKetforSession, grantKey));
+
                     if ((ttlOfSubjectSet.Result ?? TimeSpan.Zero) <= expiresIn)
-                        await transaction.KeyExpireAsync(setKeyforSubject, expiresIn);
+                        transactionOperations.Add(transaction.KeyExpireAsync(setKeyforSubject, expiresIn));
+
                     if ((ttlOfClientSet.Result ?? TimeSpan.Zero) <= expiresIn)
-                        await transaction.KeyExpireAsync(setKeyforClient, expiresIn);
+                        transactionOperations.Add(transaction.KeyExpireAsync(setKeyforClient, expiresIn));
+
                     if (!grant.SessionId.IsNullOrEmpty() && (ttlofSessionSet.Result ?? TimeSpan.Zero) <= expiresIn)
-                        await transaction.KeyExpireAsync(setKetforSession, expiresIn);
-                    await transaction.KeyExpireAsync(setKeyforType, expiresIn);
+                        transactionOperations.Add(transaction.KeyExpireAsync(setKetforSession, expiresIn));
+
+                    transactionOperations.Add(transaction.KeyExpireAsync(setKeyforType, expiresIn));
                     await transaction.PollyExecuteAsync();
+                    await Task.WhenAll(transactionOperations);
                 }
                 else
                 {
@@ -187,12 +196,16 @@ namespace Duende.IdentityServer.Contrib.RedisStore.Stores
                 logger.LogDebug("removing {grantKeysCount} persisted grants from database for subject {subjectId}, clientId {clientId}, grantType {type} and session {session}", grants.Count(), filter.SubjectId, filter.ClientId, filter.Type, filter.SessionId);
                 if (!grants.Any()) return;
                 var transaction = database.CreateTransaction();
-                await transaction.KeyDeleteAsync(grants.Select(_ => (RedisKey)_.ToString()).Concat(new RedisKey[] { setKey }).ToArray());
-                await transaction.SetRemoveAsync(GetSetKey(filter.SubjectId), grants);
-                await transaction.SetRemoveAsync(GetSetKey(filter.SubjectId, filter.ClientId), grants);
-                await transaction.SetRemoveAsync(GetSetKeyWithType(filter.SubjectId, filter.ClientId, filter.Type), grants);
-                await transaction.SetRemoveAsync(GetSetKeyWithSession(filter.SubjectId, filter.ClientId, filter.SessionId), grants);
+                var transactionOperations = new[]
+                {
+                    transaction.KeyDeleteAsync(grants.Select(_ => (RedisKey)_.ToString()).Concat(new RedisKey[] { setKey }).ToArray()),
+                    transaction.SetRemoveAsync(GetSetKey(filter.SubjectId), grants),
+                    transaction.SetRemoveAsync(GetSetKey(filter.SubjectId, filter.ClientId), grants),
+                    transaction.SetRemoveAsync(GetSetKeyWithType(filter.SubjectId, filter.ClientId, filter.Type), grants),
+                    transaction.SetRemoveAsync(GetSetKeyWithSession(filter.SubjectId, filter.ClientId, filter.SessionId), grants)
+                };
                 await transaction.PollyExecuteAsync();
+                await Task.WhenAll(transactionOperations);
             }
             catch (Exception ex)
             {
