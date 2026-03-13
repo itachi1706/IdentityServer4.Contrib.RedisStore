@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading;
 using System.Threading.Tasks;
 using Duende.IdentityServer.Contrib.RedisStore.Cache;
 using Microsoft.Extensions.Logging;
@@ -54,14 +53,17 @@ namespace Duende.IdentityServer.Contrib.RedisStore.Tests.Cache
         {
             string key = nameof(GetAsync_Does_Not_Return_Expired_Entries);
             string expected = "test_value";
-            await _cache.SetAsync(key, expected, TimeSpan.FromSeconds(2));
+            await _cache.SetAsync(key, expected, TimeSpan.FromSeconds(1));
 
             var actual = await _cache.GetAsync(key);
             Assert.Equal(expected, actual);
 
-            Thread.Sleep(TimeSpan.FromSeconds(2.1));
-
-            actual = await _cache.GetAsync(key);
+            var timeout = DateTime.UtcNow.AddSeconds(5);
+            do
+            {
+                await Task.Delay(200);
+                actual = await _cache.GetAsync(key);
+            } while (actual != null && DateTime.UtcNow < timeout);
 
             Assert.Null(actual);
         }

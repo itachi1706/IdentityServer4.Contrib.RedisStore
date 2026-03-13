@@ -1,46 +1,45 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <Description>Modified Redis Store for operational data and for Caching of Duende Identity Server</Description>
-    <Authors>Zionext</Authors>
+    <Authors>EMQ2</Authors>
     <Company>Zionext</Company>
     <AssemblyVersion>6.0.0.0</AssemblyVersion>
-    <PackageReleaseNotes>Supports Duende Identity Server v6.</PackageReleaseNotes>
-    <Version>6.0.0</Version>
+    <PackageReleaseNotes>Supports Duende Identity Server and .NET 10</PackageReleaseNotes>
+    <Version>10.0.0</Version>
     <PackageProjectUrl>https://github.com/itachi1706/IdentityServer4.Contrib.RedisStore</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <Copyright>Zionext</Copyright>
+    <Copyright>2025 EMQ2 Technology Services Pte Ltd</Copyright>
     <FileVersion>6.0.0.0</FileVersion>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <TargetFramework>net10.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.201" PrivateAssets="All" />
     <PackageReference Include="Polly.Caching.Memory" Version="3.0.2" />
   </ItemGroup>
 
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>bin\Debug\net6.0\ZNX.IDS4.Contrib.Redis.xml</DocumentationFile>
+    <DocumentationFile>bin\Debug\net10.0\SPCCS.IDS4.Contrib.Redis.xml</DocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>bin\Release\net6.0\ZNX.IDS4.Contrib.Redis.xml</DocumentationFile>
+    <DocumentationFile>bin\Release\net10.0\SPCCS.IDS4.Contrib.Redis.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="ZNX.IDS4.Contrib.Redis.nuspec" />
     <None Remove="Polly.Caching.Memory" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Duende.IdentityServer" Version="6.0.0" />
-    <PackageReference Include="Duende.IdentityServer.Storage" Version="6.0.0" />
-    <PackageReference Include="StackExchange.Redis" Version="2.6.*" />
+    <PackageReference Include="Duende.IdentityServer" Version="7.4.6" />
+    <PackageReference Include="Duende.IdentityServer.Storage" Version="7.4.6" />
+    <PackageReference Include="StackExchange.Redis" Version="2.11.8" />
   </ItemGroup>
 
   <ItemGroup>

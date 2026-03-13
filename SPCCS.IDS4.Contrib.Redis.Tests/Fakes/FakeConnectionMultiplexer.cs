@@ -4,11 +4,17 @@ using System;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
+using StackExchange.Redis.Maintenance;
 
 namespace Duende.IdentityServer.Contrib.RedisStore.Tests.Fakes
 {
     internal class FakeConnectionMultiplexer : IConnectionMultiplexer
     {
+        public void AddLibraryNameSuffix(string suffix)
+        {
+            throw new NotImplementedException();
+        }
+
         public string ClientName { get; set; }
 
         public string Configuration { get; set; }
@@ -32,11 +38,17 @@ namespace Duende.IdentityServer.Contrib.RedisStore.Tests.Fakes
         public event EventHandler<ConnectionFailedEventArgs> ConnectionRestored;
         public event EventHandler<EndPointEventArgs> ConfigurationChanged;
         public event EventHandler<EndPointEventArgs> ConfigurationChangedBroadcast;
+        public event EventHandler<ServerMaintenanceEvent> ServerMaintenanceEvent;
         public event EventHandler<HashSlotMovedEventArgs> HashSlotMoved;
 
         public void Close(bool allowCommandsToComplete = true) { }
         public Task CloseAsync(bool allowCommandsToComplete = true) => Task.CompletedTask;
         public bool Configure(TextWriter log = null) => true;
+        public IServer GetServer(RedisKey key, object asyncState = null, CommandFlags flags = CommandFlags.None)
+        {
+            throw new NotImplementedException();
+        }
+
         public IServer[] GetServers() => new IServer[0];
         public Task<bool> ConfigureAsync(TextWriter log = null) => Task.FromResult(true);
         public void Dispose() { }

@@ -24,9 +24,9 @@ namespace Duende.IdentityServer.Contrib.RedisStore.Stores
 
         protected readonly ILogger<PersistedGrantStore> logger;
 
-        protected ISystemClock clock;
+        protected TimeProvider clock;
 
-        public PersistedGrantStore(RedisMultiplexer<RedisOperationalStoreOptions> multiplexer, ILogger<PersistedGrantStore> logger, ISystemClock clock)
+        public PersistedGrantStore(RedisMultiplexer<RedisOperationalStoreOptions> multiplexer, ILogger<PersistedGrantStore> logger, TimeProvider clock)
         {
             if (multiplexer is null)
                 throw new ArgumentNullException(nameof(multiplexer));
@@ -54,7 +54,7 @@ namespace Duende.IdentityServer.Contrib.RedisStore.Stores
             {
                 var data = ConvertToJson(grant);
                 var grantKey = GetKey(grant.Key);
-                var expiresIn = grant.Expiration - this.clock.UtcNow;
+                var expiresIn = grant.Expiration - this.clock.GetUtcNow();
                 if (!string.IsNullOrEmpty(grant.SubjectId))
                 {
                     var setKeyforType = GetSetKeyWithType(grant.SubjectId, grant.ClientId, grant.Type);
@@ -69,7 +69,7 @@ namespace Duende.IdentityServer.Contrib.RedisStore.Stores
                     await Task.WhenAll(ttlOfSubjectSet, ttlOfClientSet, ttlofSessionSet);
 
                     var transaction = this.database.CreateTransaction();
-                    transaction.StringSetAsync(grantKey, data, expiresIn);
+                    transaction.StringSetAsync(grantKey, data, expiresIn, When.Always);
                     transaction.SetAddAsync(setKeyforSubject, grantKey);
                     transaction.SetAddAsync(setKeyforClient, grantKey);
                     transaction.SetAddAsync(setKeyforType, grantKey);
